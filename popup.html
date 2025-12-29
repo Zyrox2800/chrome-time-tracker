@@ -1,13 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Time Tracker</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h3>Website Time Tracker</h3>
-  <div id="time-container"></div>
-  <button id="resetBtn">Reset Times</button>
+  <h3><i class="fas fa-clock"></i> Website Time Tracker</h3>
+  
+  <div id="time-container">
+    <!-- Times will be inserted here by JavaScript -->
+  </div>
+  
+  <div class="button-container">
+    <button id="resetBtn">
+      <i class="fas fa-trash-alt"></i> Reset All
+    </button>
+    <!-- Refresh button will be added by JavaScript -->
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html>

@@ -17,3 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "resetTimes" }, () => {
+        location.reload(); // refresh popup
+    });
+});

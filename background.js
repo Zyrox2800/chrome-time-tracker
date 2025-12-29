@@ -47,9 +47,11 @@ function updateActiveTab(tabId, urlOverride) {
     });
 }
 
-// Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getTimes") {
         sendResponse(domainTimes);
+    } else if (request.action === "resetTimes") {
+        domainTimes = {};
+        sendResponse();
     }
 });

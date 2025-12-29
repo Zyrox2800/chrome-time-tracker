@@ -1,1 +1,42 @@
+body {
+  font-family: 'Arial', sans-serif;
+  min-width: 250px;
+  padding: 10px;
+  background: #f4f6f8;
+}
 
+h3 {
+  text-align: center;
+  color: #333;
+}
+
+#time-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.domain-card {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.domain-card h4 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  color: #007bff;
+}
+
+.domain-card p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.progress-bar {
+  height: 5px;
+  background: #007bff;
+  border-radius: 3px;
+  margin-top: 5px;
+}

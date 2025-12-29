@@ -1,49 +1,35 @@
 # Development Log — Chrome Time Tracker Extension
 
 ## Day 1 — Project Setup
-- Created GitHub repository `chrome-time-tracker`.
-- Defined project scope and learning goals.
+- Created GitHub repository and defined project scope.
 - Planned extension architecture: background script for tracking, popup for UI.
-- Created initial file structure:
-  - `manifest.json`
-  - `background.js`
-  - `popup.html`
-  - `popup.js`
-  - `README.md`
-  - `devlog.md`
-- Committed initial setup to GitHub.
+- Set up initial file structure and committed first setup.
 
 ## Day 2 — Manifest & Extension Loading
-- Wrote `manifest.json` (manifest_version 3, permissions, background service worker, popup).
-- Created placeholder `popup.html` and `background.js`.
-- Loaded extension in Chrome (`chrome://extensions`) and confirmed no errors.
-- Verified background script logging in DevTools.
-- Committed working extension structure.
+- Wrote `manifest.json` with permissions and connections.
+- Created placeholder popup and background scripts.
+- Loaded extension in Chrome and verified background logging.
 
 ## Day 3 — Active Tab Tracking
 - Implemented tab activation detection (`chrome.tabs.onActivated`) and URL update listener (`chrome.tabs.onUpdated`).
-- Calculated elapsed time for each domain.
-- Stored cumulative seconds per domain in memory.
-- Added message listener for popup requests.
-- Verified active tab time tracking functionality.
-- Committed working MVP code.
+- Calculated elapsed time per domain and stored in memory.
+- Verified active tab tracking and committed MVP code.
 
 ## Day 4 — Popup & Display
-- Developed `popup.js` to fetch domain times from background script.
-- Displayed times in popup in **seconds** format.
-- Verified accurate tracking across multiple tabs.
-- Committed popup functionality.
+- Developed `popup.js` to display times in popup.
+- Displayed cumulative time in **seconds**.
+- Verified multi-tab tracking and committed popup functionality.
 
 ## Day 5 — Enhancements
-- Formatted time in `hh:mm:ss`.
-- Added **Reset button** in popup to clear tracked data.
-- Implemented optional domain filtering for productivity sites.
-- Updated README to reflect full feature set.
-- Tested extension functionality end-to-end.
-- Committed enhancements and documentation updates.
+- Converted time display to **hh:mm:ss format**.
+- Added **Reset button** with instant feedback.
+- Introduced optional domain filtering for productivity sites.
+- Committed enhancements and updated README.
 
-## Day 6 — Polishing & Finalization
-- Added screenshots for README.
-- Reviewed code and devlog for clarity and authenticity.
-- Pushed final version to GitHub.
+## Day 6 — Polished UI & Real-Time Tracking
+- Created **card-based popup UI** with progress bars using `style.css`.
+- Implemented **live updates** every second in popup.
+- Integrated **persistent storage** with `chrome.storage.local`.
+- Tested full functionality: live tracking, reset, UI, and storage.
+- Updated README and devlog to reflect final polished version.
 - Project is now **resume-ready** and fully functional.

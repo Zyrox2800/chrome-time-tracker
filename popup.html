@@ -1,14 +1,295 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Time Tracker</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Time Tracker Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h3>Website Time Tracker</h3>
-  <div id="time-container">Loading...</div>
-  <button id="resetBtn">Reset All Times</button>
-  <script src="popup.js"></script>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="header-content">
+                    <h1 class="app-title">Time Tracker Pro</h1>
+                    <p class="app-subtitle">Productivity Analytics Dashboard</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">U</div>
+                    <span class="user-name">User</span>
+                </div>
+                <button class="icon-btn" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-label">
+                    <i class="fas fa-globe"></i> Sites
+                </div>
+                <div class="stat-value" id="totalSites">0</div>
+                <div class="stat-detail">Tracked</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">
+                    <i class="fas fa-clock"></i> Today
+                </div>
+                <div class="stat-value" id="todayTime">0:00</div>
+                <div class="stat-detail">Hours</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">
+                    <i class="fas fa-bolt"></i> Focus
+                </div>
+                <div class="stat-value" id="focusScore">0%</div>
+                <div class="stat-detail">Score</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">
+                    <i class="fas fa-fire"></i> Streak
+                </div>
+                <div class="streak-badge" id="streakBadge">0</div>
+                <div class="stat-detail">Days</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="nav-tab" data-tab="sites">
+                <i class="fas fa-globe"></i> Sites
+            </button>
+            <button class="nav-tab" data-tab="goals">
+                <i class="fas fa-bullseye"></i> Goals
+            </button>
+            <button class="nav-tab" data-tab="achievements">
+                <i class="fas fa-trophy"></i> Achievements
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane active" id="dashboard">
+                <div class="dashboard-grid">
+                    <!-- Productivity Score -->
+                    <div class="card productivity-score">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-brain"></i> Productivity Score
+                            </h3>
+                        </div>
+                        <div class="score-circle">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="score-circle-bg" cx="60" cy="60" r="54"></circle>
+                                <circle class="score-circle-fill" cx="60" cy="60" r="54"></circle>
+                            </svg>
+                            <div class="score-text">0%</div>
+                        </div>
+                        <p class="score-label">Your efficiency rating</p>
+                    </div>
+
+                    <!-- Today's Stats -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-calendar-day"></i> Today's Activity
+                            </h3>
+                        </div>
+                        <div class="quick-stats">
+                            <div class="quick-stat">
+                                <div class="stat-icon-container productive">
+                                    <i class="fas fa-check-circle stat-icon productive"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h4>Productive</h4>
+                                    <p>Learning & Work</p>
+                                </div>
+                                <div class="stat-time" id="productiveTime">0:00</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="stat-icon-container neutral">
+                                    <i class="fas fa-pause-circle stat-icon neutral"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h4>Neutral</h4>
+                                    <p>Research & Reading</p>
+                                </div>
+                                <div class="stat-time" id="neutralTime">0:00</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="stat-icon-container distracting">
+                                    <i class="fas fa-times-circle stat-icon distracting"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h4>Distracting</h4>
+                                    <p>Entertainment</p>
+                                </div>
+                                <div class="stat-time" id="distractingTime">0:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Focus Timer -->
+                    <div class="card focus-timer">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-hourglass-half"></i> Focus Timer
+                            </h3>
+                        </div>
+                        <div class="timer-display" id="focusTimer">25:00</div>
+                        <div class="timer-controls">
+                            <button class="timer-btn primary" id="startTimer">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="timer-btn secondary" id="pauseTimer" disabled>
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="timer-btn secondary" id="resetTimer">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                        </div>
+                        <div class="focus-stats">
+                            <div class="focus-stat">
+                                <div class="value" id="sessionsToday">0</div>
+                                <div class="label">Sessions</div>
+                            </div>
+                            <div class="focus-stat">
+                                <div class="value" id="totalFocus">0</div>
+                                <div class="label">Total Focus</div>
+                            </div>
+                            <div class="focus-stat">
+                                <div class="value" id="bestSession">0</div>
+                                <div class="label">Best</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-bolt"></i> Quick Actions
+                            </h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="action-btn" id="exportData">
+                                <i class="fas fa-file-export"></i> Export Data
+                            </button>
+                            <button class="action-btn" id="setDailyGoal">
+                                <i class="fas fa-bullseye"></i> Set Daily Goal
+                            </button>
+                            <button class="action-btn danger" id="resetData">
+                                <i class="fas fa-trash"></i> Reset All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sites Tab -->
+            <div class="tab-pane" id="sites">
+                <div class="sites-header">
+                    <h3><i class="fas fa-globe"></i> Tracked Websites</h3>
+                    <div class="sites-controls">
+                        <input type="text" class="search-input" id="siteSearch" placeholder="Search sites...">
+                        <select class="filter-select" id="siteFilter">
+                            <option value="all">All Sites</option>
+                            <option value="productive">Productive</option>
+                            <option value="distracting">Distracting</option>
+                            <option value="neutral">Neutral</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="sites-container" id="sitesList">
+                    <!-- Sites will be populated here -->
+                </div>
+            </div>
+
+            <!-- Goals Tab -->
+            <div class="tab-pane" id="goals">
+                <div class="goals-header">
+                    <h3><i class="fas fa-bullseye"></i> Productivity Goals</h3>
+                    <button class="btn-primary" id="addGoal">
+                        <i class="fas fa-plus"></i> New Goal
+                    </button>
+                </div>
+                <div class="goal-form" id="goalForm" style="display: none;">
+                    <div class="form-row">
+                        <input type="text" class="form-input" id="goalTitle" placeholder="Goal title">
+                        <select class="form-input" id="goalType">
+                            <option value="time">Time Based</option>
+                            <option value="limit">Limit Based</option>
+                        </select>
+                        <input type="number" class="form-input" id="goalTarget" placeholder="Target">
+                    </div>
+                    <div class="form-actions">
+                        <button class="action-btn small" id="cancelGoal">Cancel</button>
+                        <button class="action-btn small primary" id="saveGoal">Save Goal</button>
+                    </div>
+                </div>
+                <div class="goals-container" id="goalsList">
+                    <!-- Goals will be populated here -->
+                </div>
+            </div>
+
+            <!-- Achievements Tab -->
+            <div class="tab-pane" id="achievements">
+                <div class="achievements-header">
+                    <h3><i class="fas fa-trophy"></i> Achievements</h3>
+                    <div class="achievement-stats">
+                        <span class="achievement-count" id="unlockedCount">0</span>
+                        <span>/</span>
+                        <span class="achievement-count" id="totalAchievements">12</span>
+                    </div>
+                </div>
+                <div class="achievements-container" id="achievementsList">
+                    <!-- Achievements will be populated here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="action-btn" id="pauseTracking">
+                <i class="fas fa-pause"></i> Pause Tracking
+            </button>
+            <button class="action-btn" id="refreshData">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Reset</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset all tracking data? This action cannot be undone.</p>
+                <p>All your time tracking history will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="cancelReset">Cancel</button>
+                <button class="action-btn danger" id="confirmReset">Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
 </body>
 </html>

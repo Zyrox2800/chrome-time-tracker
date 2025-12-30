@@ -1,3 +1,4 @@
+// Time Tracker Pro - Main Popup Script
 document.addEventListener('DOMContentLoaded', function() {
     // State Management
     let state = {
@@ -11,7 +12,12 @@ document.addEventListener('DOMContentLoaded', function() {
             time: 25 * 60,
             running: false,
             interval: null
-        }
+        },
+        focusSessions: 0,
+        streak: 0,
+        nightSessions: 0,
+        completedGoals: 0,
+        weekendTracking: false
     };
 
     // DOM Elements
@@ -20,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         totalSites: document.getElementById('totalSites'),
         todayTime: document.getElementById('todayTime'),
         focusScore: document.getElementById('focusScore'),
-        streakBadge: document.getElementById('streakBadge'),
+        totalPoints: document.getElementById('totalPoints'),
         
         // Dashboard
         productiveTime: document.getElementById('productiveTime'),
@@ -38,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
         pauseTracking: document.getElementById('pauseTracking'),
         themeToggle: document.getElementById('themeToggle'),
         exportData: document.getElementById('exportData'),
-        setDailyGoal: document.getElementById('setDailyGoal'),
         
         // Tabs
         navTabs: document.querySelectorAll('.nav-tab'),
@@ -47,11 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Modals
         resetModal: document.getElementById('resetModal'),
         loginModal: document.getElementById('loginModal'),
-        exportModal: document.getElementById('exportModal'),
-        
-        // Achievement counters
-        unlockedCount: document.getElementById('unlockedCount'),
-        totalAchievements: document.getElementById('totalAchievements')
+        exportModal: document.getElementById('exportModal')
     };
 
     // Achievement System
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Night Owl',
             description: 'Track time after 10 PM',
             icon: 'moon',
-            requirement: (data) => data.nightSessions >= 1,
+            requirement: (data) => (data.nightSessions || 0) >= 1,
             points: 25
         },
         {
@@ -153,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Weekend Warrior',
             description: 'Track time on both weekend days',
             icon: 'calendar-week',
-            requirement: (data) => data.weekendTracking === true,
+            requirement: (data) => (data.weekendTracking || false) === true,
             points: 20
         },
         {
@@ -197,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await loadState();
         setupEventListeners();
         setupTimer();
+        setupModals();
         updateUI();
         
         // Auto-save every 30 seconds
@@ -222,7 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
             ], (result) => {
                 state.domainTimes = result.domainTimes || {};
                 state.goals = result.goals || getDefaultGoals();
-                state.achievements = result.achievements || ACHIEVEMENTS.map(a => ({ ...a, unlocked: false }));
+                state.achievements = result.achievements || ACHIEVEMENTS.map(a => ({ 
+                    ...a, 
+                    unlocked: false 
+                }));
                 state.user = result.user || null;
                 state.isTrackingPaused = result.trackingPaused || false;
                 state.theme = result.theme || 'light';
@@ -231,6 +236,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 state.nightSessions = result.nightSessions || 0;
                 state.completedGoals = result.completedGoals || 0;
                 state.weekendTracking = result.weekendTracking || false;
+                
+                // Apply theme
+                document.body.setAttribute('data-theme', state.theme);
+                elements.themeToggle.innerHTML = state.theme === 'dark' ? 
+                    '<i class="fas fa-sun"></i>' : 
+                    '<i class="fas fa-moon"></i>';
                 
                 // Check and update achievements
                 checkAchievements();
@@ -241,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function saveState() {
         chrome.storage.local.set({
+            domainTimes: state.domainTimes,
             goals: state.goals,
             achievements: state.achievements,
             user: state.user,
@@ -309,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateGoalsList();
         updateAchievementsList();
         updateUserStatus();
+        updateDistributionChart();
     }
 
     function updateStats() {
@@ -319,19 +332,31 @@ document.addEventListener('DOMContentLoaded', function() {
         let productive = 0;
         let neutral = 0;
         let distracting = 0;
+        let productiveCount = 0, neutralCount = 0, distractingCount = 0;
         
-        const today = new Date().setHours(0, 0, 0, 0);
-        
-        sites.forEach(site => {
-            const data = state.domainTimes[site];
+        Object.values(state.domainTimes).forEach(data => {
             totalToday += data.total;
             
             switch(data.productivity) {
-                case 2: productive += data.total; break;
-                case 1: neutral += data.total; break;
-                case 0: distracting += data.total; break;
+                case 2: 
+                    productive += data.total;
+                    productiveCount++;
+                    break;
+                case 1: 
+                    neutral += data.total;
+                    neutralCount++;
+                    break;
+                case 0: 
+                    distracting += data.total;
+                    distractingCount++;
+                    break;
             }
         });
+        
+        // Update site counts
+        document.getElementById('productiveSites').textContent = productiveCount;
+        document.getElementById('neutralSites').textContent = neutralCount;
+        document.getElementById('distractingSites').textContent = distractingCount;
         
         elements.todayTime.textContent = formatTime(totalToday);
         elements.productiveTime.textContent = formatTime(productive);
@@ -348,17 +373,63 @@ document.addEventListener('DOMContentLoaded', function() {
         if (circle) {
             const circumference = 2 * Math.PI * 54;
             const offset = circumference - (score / 100) * circumference;
-            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDasharray = `${circumference}`;
             circle.style.strokeDashoffset = offset;
             document.querySelector('.score-text').textContent = `${score}%`;
         }
         
-        // Update streak
-        elements.streakBadge.textContent = state.streak;
+        // Update total points
+        const totalPoints = state.achievements
+            .filter(a => a.unlocked)
+            .reduce((sum, a) => sum + a.points, 0);
+        document.querySelectorAll('#totalPoints').forEach(el => {
+            el.textContent = totalPoints;
+        });
+        
+        // Update today score and best score
+        document.getElementById('todayScore').textContent = `${score}%`;
+        document.getElementById('bestScore').textContent = `${Math.max(score, 85)}%`;
+        
+        // Update completed sessions
+        document.getElementById('completedSessions').textContent = state.focusSessions;
+        document.getElementById('totalFocusTime').textContent = `${Math.floor(state.focusSessions * 25 / 60)}h`;
+        document.getElementById('longestSession').textContent = `${state.focusSessions > 0 ? 25 : 0}m`;
+    }
+
+    function updateDistributionChart() {
+        let productive = 0, neutral = 0, distracting = 0;
+        
+        Object.values(state.domainTimes).forEach(data => {
+            switch(data.productivity) {
+                case 2: productive += data.total; break;
+                case 1: neutral += data.total; break;
+                case 0: distracting += data.total; break;
+            }
+        });
+        
+        const total = productive + neutral + distracting;
+        if (total === 0) return;
+        
+        const productivePercent = Math.round((productive / total) * 100);
+        const neutralPercent = Math.round((neutral / total) * 100);
+        const distractingPercent = Math.round((distracting / total) * 100);
+        
+        document.getElementById('productivePercent').textContent = `${productivePercent}%`;
+        document.getElementById('neutralPercent').textContent = `${neutralPercent}%`;
+        document.getElementById('distractingPercent').textContent = `${distractingPercent}%`;
+        
+        // Update chart widths
+        const productiveSeg = document.querySelector('.distribution-segment.productive');
+        const neutralSeg = document.querySelector('.distribution-segment.neutral');
+        const distractingSeg = document.querySelector('.distribution-segment.distracting');
+        
+        if (productiveSeg) productiveSeg.style.width = `${productivePercent}%`;
+        if (neutralSeg) neutralSeg.style.width = `${neutralPercent}%`;
+        if (distractingSeg) distractingSeg.style.width = `${distractingPercent}%`;
     }
 
     function formatTime(seconds) {
-        if (!seconds) return "0:00";
+        if (!seconds || seconds < 60) return "0m";
         
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
@@ -396,8 +467,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.productivity === 0) productivityClass = 'distracting';
             
             // Calculate percentage for progress bar
-            const maxSeconds = 8 * 3600; // 8 hours
-            const percentage = Math.min((data.total / maxSeconds) * 100, 100);
+            const maxSeconds = Math.max(...Object.values(state.domainTimes).map(s => s.total));
+            const percentage = maxSeconds > 0 ? Math.min((data.total / maxSeconds) * 100, 100) : 0;
             
             siteItem.innerHTML = `
                 <div class="site-favicon ${productivityClass}">
@@ -433,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-bullseye icon"></i>
                     <h4>No goals set</h4>
                     <p>Set goals to improve your productivity!</p>
-                    <button class="btn-primary" id="createFirstGoal">
+                    <button class="action-btn primary" id="createFirstGoal">
                         <i class="fas fa-plus"></i> Create First Goal
                     </button>
                 </div>
@@ -448,35 +519,48 @@ document.addEventListener('DOMContentLoaded', function() {
         state.goals.forEach((goal, index) => {
             const goalItem = document.createElement('div');
             goalItem.className = `goal-item ${goal.completed ? 'completed' : ''}`;
+            goalItem.style.cssText = `
+                background: var(--bg-card);
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                padding: var(--spacing-md);
+                margin-bottom: var(--spacing-sm);
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+            `;
             
-            const progress = calculateGoalProgress(goal);
-            const percentage = Math.min((progress / goal.target) * 100, 100);
+            const progress = goal.progress || 0;
+            const percentage = goal.target > 0 ? Math.min((progress / goal.target) * 100, 100) : 0;
             
             goalItem.innerHTML = `
-                <div class="goal-checkbox ${goal.completed ? 'checked' : ''}" data-index="${index}">
+                <div class="goal-checkbox ${goal.completed ? 'checked' : ''}" data-index="${index}" 
+                     style="width: 24px; height: 24px; border: 2px solid var(--border-medium); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                     ${goal.completed ? '✓' : ''}
                 </div>
-                <div class="goal-content">
-                    <div class="goal-title">
+                <div class="goal-content" style="flex: 1;">
+                    <div class="goal-title" style="font-weight: 600; margin-bottom: 4px;">
                         ${goal.title}
-                        <span class="goal-category ${goal.category}">${goal.category}</span>
+                        <span class="goal-category" style="font-size: 11px; padding: 2px 8px; background: var(--bg-tertiary); border-radius: var(--radius-full); margin-left: 8px;">
+                            ${goal.category}
+                        </span>
                     </div>
-                    <div class="goal-meta">
+                    <div class="goal-meta" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
                         <span><i class="fas fa-calendar"></i> Due: ${formatDate(goal.dueDate)}</span>
-                        <span><i class="fas fa-${goal.type === 'time' ? 'clock' : 'bullseye'}"></i> ${goal.target} ${goal.type === 'time' ? 'hours' : 'visits'}</span>
+                        <span style="margin-left: 12px;"><i class="fas fa-${goal.type === 'time' ? 'clock' : 'bullseye'}"></i> ${goal.target} ${goal.type === 'time' ? 'hours' : 'visits'}</span>
                     </div>
                     <div class="goal-progress">
-                        <div class="goal-progress-bar">
-                            <div class="goal-progress-fill" style="width: ${percentage}%"></div>
+                        <div class="goal-progress-bar" style="height: 6px; background: var(--border-light); border-radius: var(--radius-full); overflow: hidden;">
+                            <div class="goal-progress-fill" style="height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: ${percentage}%; transition: width 0.3s ease;"></div>
                         </div>
-                        <div class="goal-percentage">${Math.round(percentage)}% (${progress}/${goal.target})</div>
+                        <div class="goal-percentage" style="font-size: 12px; margin-top: 4px;">${Math.round(percentage)}% (${progress}/${goal.target})</div>
                     </div>
                 </div>
-                <div class="goal-actions">
-                    <button class="icon-btn small edit-goal" data-index="${index}" title="Edit">
+                <div class="goal-actions" style="display: flex; gap: 4px;">
+                    <button class="icon-btn small edit-goal" data-index="${index}" title="Edit" style="width: 32px; height: 32px;">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="icon-btn small delete-goal" data-index="${index}" title="Delete">
+                    <button class="icon-btn small delete-goal" data-index="${index}" title="Delete" style="width: 32px; height: 32px;">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -536,18 +620,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Update counter elements
-        if (elements.unlockedCount) {
-            elements.unlockedCount.textContent = unlockedCount;
+        if (document.getElementById('unlockedCount')) {
+            document.getElementById('unlockedCount').textContent = unlockedCount;
         }
-        if (elements.totalAchievements) {
-            elements.totalAchievements.textContent = state.achievements.length;
+        if (document.getElementById('totalAchievements')) {
+            document.getElementById('totalAchievements').textContent = state.achievements.length;
         }
         
-        // Update total points
-        const totalPoints = state.achievements
-            .filter(a => a.unlocked)
-            .reduce((sum, a) => sum + a.points, 0);
-        document.getElementById('totalPoints')?.textContent = totalPoints;
+        // Update completion rate
+        const completionRate = Math.round((unlockedCount / state.achievements.length) * 100);
+        document.getElementById('completionRate').textContent = `${completionRate}%`;
     }
 
     function updateUserStatus() {
@@ -558,7 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (state.user) {
             userStatus.textContent = state.user.name || 'User';
             userAvatar.textContent = (state.user.name || 'U').charAt(0).toUpperCase();
-            loginBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+            loginBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i>';
             loginBtn.dataset.action = 'logout';
             
             // Enable export button
@@ -567,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             userStatus.textContent = 'Guest';
             userAvatar.textContent = 'G';
-            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i>';
             loginBtn.dataset.action = 'login';
             
             // Disable export button
@@ -603,11 +685,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Export data
         elements.exportData.addEventListener('click', handleExport);
         
-        // Set daily goal
-        elements.setDailyGoal.addEventListener('click', () => {
+        // Add goal button
+        document.getElementById('addGoal')?.addEventListener('click', () => {
             showGoalForm();
-            document.querySelector('[data-tab="goals"]').click();
         });
+        
+        // Save goal
+        document.getElementById('saveGoal')?.addEventListener('click', saveGoal);
+        
+        // Cancel goal
+        document.getElementById('cancelGoal')?.addEventListener('click', hideGoalForm);
         
         // Reset data
         elements.resetData.addEventListener('click', () => {
@@ -628,18 +715,40 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pause tracking
         elements.pauseTracking.addEventListener('click', toggleTracking);
         
-        // Goal form
-        document.getElementById('saveGoal')?.addEventListener('click', saveGoal);
-        document.getElementById('cancelGoal')?.addEventListener('click', hideGoalForm);
+        // Continue as guest
+        document.getElementById('continueGuest')?.addEventListener('click', () => {
+            hideModal('loginModal');
+            showNotification('Continuing as guest', 'info');
+        });
         
-        // Modal close buttons
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => {
-                btn.closest('.modal').classList.remove('active');
+        // Timer preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const time = parseInt(e.target.dataset.time);
+                if (!isNaN(time)) {
+                    state.focusTimer.time = time;
+                    updateTimerDisplay();
+                }
             });
         });
         
-        // Click outside modal to close
+        // Login options
+        document.querySelectorAll('.login-option').forEach(option => {
+            option.addEventListener('click', () => {
+                showNotification('Login functionality would be implemented here', 'info');
+            });
+        });
+    }
+
+    function setupModals() {
+        // Close modals when clicking X
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.closest('.modal').classList.remove('active');
+            });
+        });
+        
+        // Close modals when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -669,8 +778,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         state.focusTimer.running = false;
                         state.focusSessions++;
                         saveState();
-                        showNotification('🎉 Focus session completed!', 'success');
+                        showNotification('🎉 Focus session completed! Take a 5-minute break.', 'success');
                         checkAchievements();
+                        
+                        // Reset for next session
+                        state.focusTimer.time = 25 * 60;
+                        updateTimerDisplay();
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                        startBtn.innerHTML = '<i class="fas fa-play"></i> Start';
                     }
                 }, 1000);
                 
@@ -714,13 +830,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper Functions
     function getDomainIcon(domain) {
         const icons = {
-            'github': 'code',
-            'youtube': 'video',
-            'twitter': 'comment-alt',
-            'linkedin': 'briefcase',
+            'github': 'code-branch',
+            'youtube': 'youtube',
+            'twitter': 'twitter',
+            'linkedin': 'linkedin',
             'gmail': 'envelope',
             'google': 'search',
-            'stackoverflow': 'code-branch',
+            'stackoverflow': 'stack-overflow',
             'reddit': 'reddit',
             'facebook': 'facebook',
             'instagram': 'instagram',
@@ -733,7 +849,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'spotify': 'music',
             'discord': 'discord',
             'zoom': 'video',
-            'teams': 'users'
+            'teams': 'users',
+            'whatsapp': 'whatsapp',
+            'gdrive': 'cloud',
+            'dropbox': 'dropbox'
         };
         
         for (const [key, icon] of Object.entries(icons)) {
@@ -751,13 +870,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function calculateGoalProgress(goal) {
-        // Implement based on goal type
-        return 0;
-    }
-
     function formatDate(timestamp) {
-        return new Date(timestamp).toLocaleDateString();
+        return new Date(timestamp).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
     }
 
     function showNotification(message, type = 'info') {
@@ -765,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
             <div class="notification-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
                 <span>${message}</span>
             </div>
         `;
@@ -788,7 +906,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveState();
     }
 
-    async function handleLogin() {
+    function handleLogin() {
         const btn = document.getElementById('loginBtn');
         
         if (btn.dataset.action === 'login') {
@@ -808,43 +926,32 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const data = {
-            domainTimes: state.domainTimes,
-            goals: state.goals,
-            achievements: state.achievements.filter(a => a.unlocked),
-            user: state.user,
-            exportDate: new Date().toISOString()
-        };
-        
-        const dataStr = JSON.stringify(data, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const dataUrl = URL.createObjectURL(dataBlob);
-        
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = `time-tracker-data-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(dataUrl);
-        
-        showNotification('Data exported successfully!', 'success');
+        showModal('exportModal');
     }
 
     function resetData() {
-        chrome.runtime.sendMessage({ action: 'reset' }, () => {
-            state.domainTimes = {};
-            updateUI();
-            hideModal('resetModal');
-            showNotification('All data has been reset', 'success');
-        });
+        state.domainTimes = {};
+        state.goals = getDefaultGoals();
+        state.achievements = ACHIEVEMENTS.map(a => ({ ...a, unlocked: false }));
+        state.focusSessions = 0;
+        state.streak = 0;
+        state.nightSessions = 0;
+        state.completedGoals = 0;
+        state.weekendTracking = false;
+        
+        updateUI();
+        saveState();
+        hideModal('resetModal');
+        showNotification('All data has been reset successfully', 'success');
     }
 
     function refreshData() {
-        chrome.storage.local.get(['domainTimes'], (result) => {
-            state.domainTimes = result.domainTimes || {};
-            updateUI();
-            showNotification('Data refreshed', 'info');
+        chrome.runtime.sendMessage({ action: 'getData' }, (response) => {
+            if (response && response.domainTimes) {
+                state.domainTimes = response.domainTimes;
+                updateUI();
+                showNotification('Data refreshed from background tracking', 'success');
+            }
         });
     }
 
@@ -867,35 +974,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showGoalForm(goal = null) {
         const form = document.getElementById('goalForm');
-        form.style.display = 'block';
-        
-        if (goal) {
-            // Edit existing goal
-            document.getElementById('goalTitle').value = goal.title;
-            document.getElementById('goalType').value = goal.type;
-            document.getElementById('goalTarget').value = goal.target;
-            document.getElementById('goalCategory').value = goal.category;
-            document.getElementById('goalDueDate').value = goal.dueDate;
-        } else {
-            // New goal
-            document.getElementById('goalForm').reset();
-            document.getElementById('goalDueDate').value = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        if (form) {
+            form.style.display = 'block';
+            
+            if (goal) {
+                // Edit existing goal
+                document.getElementById('goalTitle').value = goal.title;
+                document.getElementById('goalType').value = goal.type;
+                document.getElementById('goalTarget').value = goal.target;
+                document.getElementById('goalCategory').value = goal.category;
+                document.getElementById('goalDueDate').value = new Date(goal.dueDate).toISOString().split('T')[0];
+            } else {
+                // New goal
+                form.reset();
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 7);
+                document.getElementById('goalDueDate').value = tomorrow.toISOString().split('T')[0];
+            }
         }
     }
 
     function hideGoalForm() {
-        document.getElementById('goalForm').style.display = 'none';
+        const form = document.getElementById('goalForm');
+        if (form) {
+            form.style.display = 'none';
+        }
     }
 
     function saveGoal() {
-        const title = document.getElementById('goalTitle').value.trim();
-        const type = document.getElementById('goalType').value;
-        const target = parseFloat(document.getElementById('goalTarget').value);
-        const category = document.getElementById('goalCategory').value;
-        const dueDate = new Date(document.getElementById('goalDueDate').value).getTime();
+        const title = document.getElementById('goalTitle')?.value.trim();
+        const type = document.getElementById('goalType')?.value;
+        const target = parseFloat(document.getElementById('goalTarget')?.value);
+        const category = document.getElementById('goalCategory')?.value;
+        const dueDate = new Date(document.getElementById('goalDueDate')?.value).getTime();
         
         if (!title || !target || target <= 0) {
-            showNotification('Please fill all required fields', 'warning');
+            showNotification('Please fill all required fields with valid values', 'warning');
             return;
         }
         
@@ -921,7 +1035,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleGoalCompletion(index) {
         state.goals[index].completed = !state.goals[index].completed;
         if (state.goals[index].completed) {
-            state.completedGoals++;
+            state.completedGoals = (state.completedGoals || 0) + 1;
+        } else {
+            state.completedGoals = Math.max(0, (state.completedGoals || 0) - 1);
         }
         updateGoalsList();
         saveState();
@@ -934,6 +1050,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function deleteGoal(index) {
         if (confirm('Are you sure you want to delete this goal?')) {
+            if (state.goals[index].completed) {
+                state.completedGoals = Math.max(0, (state.completedGoals || 0) - 1);
+            }
             state.goals.splice(index, 1);
             updateGoalsList();
             saveState();

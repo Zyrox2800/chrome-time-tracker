@@ -1,62 +1,88 @@
-// Website Time Tracker - Background Service Worker
-// This runs in the background to track your tab activity
-
+// Time Tracker Pro - Background Service Worker
 let activeTabId = null;
 let activeDomain = null;
 let startTime = null;
 let domainTimes = {};
+let sessionStart = Date.now();
 
 // Load saved times when the extension starts
 chrome.runtime.onInstalled.addListener(() => {
-    console.log("Time Tracker extension installed/updated");
-    chrome.storage.local.get(["domainTimes"], (result) => {
-        if (chrome.runtime.lastError) {
-            console.error("Error loading storage:", chrome.runtime.lastError);
-            domainTimes = {};
-        } else {
-            domainTimes = result.domainTimes || {};
-            console.log("Loaded saved times for", Object.keys(domainTimes).length, "domains");
-        }
+    console.log("Time Tracker Pro extension installed");
+    chrome.storage.local.get(["domainTimes", "totalTime"], (result) => {
+        domainTimes = result.domainTimes || {};
+        console.log("Loaded saved times for", Object.keys(domainTimes).length, "domains");
     });
 });
 
-// Also load when Chrome starts (in case service worker was asleep)
+// Load when Chrome starts
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get(["domainTimes"], (result) => {
         domainTimes = result.domainTimes || {};
     });
 });
 
-// Extract just the domain name from a URL
+// Extract domain from URL
 function getDomain(url) {
     if (!url || url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
-        return null; // Ignore Chrome internal pages
+        return null;
     }
     try {
         const urlObj = new URL(url);
-        return urlObj.hostname.replace("www.", ""); // Remove "www." for cleaner display
+        let domain = urlObj.hostname.replace("www.", "");
+        // Clean up domain further
+        domain = domain.split('.').slice(-2).join('.');
+        return domain;
     } catch {
         return null;
     }
 }
 
-// Update tracking when switching tabs or URLs
+// Calculate productivity score
+function calculateProductivity(domain) {
+    const productiveDomains = [
+        "github.com", "stackoverflow.com", "docs.google.com", 
+        "notion.so", "figma.com", "code.visualstudio.com",
+        "developer.mozilla.org", "chat.openai.com"
+    ];
+    
+    const distractingDomains = [
+        "youtube.com", "netflix.com", "facebook.com", "twitter.com",
+        "instagram.com", "tiktok.com", "reddit.com", "twitch.tv"
+    ];
+    
+    if (productiveDomains.some(d => domain.includes(d))) return 2;
+    if (distractingDomains.some(d => domain.includes(d))) return 0;
+    return 1; // neutral
+}
+
+// Update tracking when switching tabs
 function updateActiveTab(tabId, urlOverride = null) {
-    // Save time from previous tab if we were tracking one
+    // Save time from previous tab if tracking
     if (activeTabId !== null && activeDomain !== null && startTime !== null) {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         
-        if (elapsed > 0) { // Only save if time has passed
-            domainTimes[activeDomain] = (domainTimes[activeDomain] || 0) + elapsed;
+        if (elapsed > 0) {
+            if (!domainTimes[activeDomain]) {
+                domainTimes[activeDomain] = {
+                    total: 0,
+                    sessions: 0,
+                    lastVisited: Date.now(),
+                    productivity: calculateProductivity(activeDomain)
+                };
+            }
             
-            // Save to Chrome's storage
+            domainTimes[activeDomain].total += elapsed;
+            domainTimes[activeDomain].sessions += 1;
+            domainTimes[activeDomain].lastVisited = Date.now();
+            
+            // Save to storage
             chrome.storage.local.set({ domainTimes }, () => {
                 if (chrome.runtime.lastError) {
                     console.error("Error saving time:", chrome.runtime.lastError);
                 }
             });
             
-            console.log(`Saved ${elapsed}s to ${activeDomain}, total: ${domainTimes[activeDomain]}s`);
+            console.log(`Saved ${elapsed}s to ${activeDomain}`);
         }
     }
 
@@ -65,7 +91,6 @@ function updateActiveTab(tabId, urlOverride = null) {
     
     chrome.tabs.get(tabId, (tab) => {
         if (chrome.runtime.lastError) {
-            // Tab might have been closed
             activeTabId = null;
             activeDomain = null;
             return;
@@ -77,29 +102,24 @@ function updateActiveTab(tabId, urlOverride = null) {
         if (newDomain) {
             activeDomain = newDomain;
             startTime = Date.now();
-            console.log(`Now tracking: ${activeDomain}`);
         } else {
-            activeDomain = null; // Don't track Chrome pages
+            activeDomain = null;
             startTime = null;
         }
     });
 }
 
 // Listeners for tab activity
-
-// When user switches to a different tab
 chrome.tabs.onActivated.addListener((activeInfo) => {
     updateActiveTab(activeInfo.tabId);
 });
 
-// When a tab's URL changes (clicking links, typing URL)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (tabId === activeTabId && changeInfo.url) {
         updateActiveTab(tabId, changeInfo.url);
     }
 });
 
-// When a tab is closed, save its time
 chrome.tabs.onRemoved.addListener((tabId) => {
     if (tabId === activeTabId) {
         updateActiveTab(tabId);
@@ -109,17 +129,40 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     }
 });
 
-// Optional: Save data every minute in case Chrome crashes
+// Save data every minute
 setInterval(() => {
     if (activeTabId !== null && activeDomain !== null && startTime !== null) {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        if (elapsed > 10) { // Only save if at least 10 seconds passed
-            domainTimes[activeDomain] = (domainTimes[activeDomain] || 0) + elapsed;
+        if (elapsed > 10) {
+            if (!domainTimes[activeDomain]) {
+                domainTimes[activeDomain] = {
+                    total: 0,
+                    sessions: 0,
+                    lastVisited: Date.now(),
+                    productivity: calculateProductivity(activeDomain)
+                };
+            }
+            
+            domainTimes[activeDomain].total += elapsed;
+            domainTimes[activeDomain].sessions += 1;
             chrome.storage.local.set({ domainTimes });
-            startTime = Date.now(); // Reset timer
+            startTime = Date.now();
         }
     }
-}, 60000); // Every minute
+}, 60000);
 
-// Export for debugging (optional)
-window.domainTimes = domainTimes;
+// Message listener for reset and other commands
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "reset") {
+        domainTimes = {};
+        chrome.storage.local.set({ domainTimes: {} }, () => {
+            console.log("All tracking data reset");
+            sendResponse({ success: true });
+        });
+        return true;
+    }
+    
+    if (message.action === "getData") {
+        sendResponse({ domainTimes });
+    }
+});

@@ -1523,3 +1523,293 @@ body {
         font-size: 48px;
     }
 }
+
+/* Additional styles for enhanced UI */
+
+/* Loading states */
+.loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--border-light);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Badge styles */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-productive {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--success);
+}
+
+.badge-neutral {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+
+.badge-distracting {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+}
+
+/* Pulse animation for notifications */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Shake animation for warnings */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Progress ring for smaller elements */
+.progress-ring {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+/* Export options grid */
+.export-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.export-option {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    border: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+}
+
+.export-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.export-option .fas {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.export-option h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.export-option p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Settings grid */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+/* Insights grid */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.insights-card {
+    text-align: center;
+}
+
+.insights-placeholder {
+    padding: 40px 20px;
+    color: var(--text-tertiary);
+}
+
+.insights-placeholder .fas {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+    display: block;
+}
+
+.insights-placeholder p {
+    font-size: 13px;
+}
+
+/* Empty state improvements */
+.empty-state .btn-primary {
+    margin-top: var(--spacing-md);
+}
+
+/* Responsive improvements */
+@media (max-width: 480px) {
+    .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .productivity-score,
+    .time-distribution,
+    .focus-timer,
+    .quick-insights {
+        grid-column: span 1 !important;
+    }
+    
+    .export-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .sites-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .achievements-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        margin: var(--spacing-sm);
+    }
+}
+
+/* Print styles for export */
+@media print {
+    body {
+        width: 100%;
+        height: auto;
+    }
+    
+    .app-header,
+    .stats-bar,
+    .nav-container,
+    .action-bar,
+    button {
+        display: none !important;
+    }
+    
+    .main-content {
+        padding: 0;
+        overflow: visible;
+    }
+    
+    .tab-pane {
+        display: block !important;
+        page-break-inside: avoid;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-light: #000000;
+        --border-medium: #000000;
+        --text-primary: #000000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

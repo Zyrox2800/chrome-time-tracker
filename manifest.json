@@ -1,11 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Time Tracker Pro",
-  "version": "1.0",
-  "description": "Tracks time spent on active websites with detailed analytics.",
-  "permissions": ["tabs", "storage"],
+  "version": "2.0",
+  "description": "Advanced time tracking with productivity analytics, goals, and gamification",
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html",
@@ -19,5 +24,8 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Website Time Tracker",
+  "name": "Time Tracker Pro",
   "version": "1.0",
-  "description": "Tracks time spent on active websites.",
+  "description": "Tracks time spent on active websites with detailed analytics.",
   "permissions": ["tabs", "storage"],
   "background": {
     "service_worker": "background.js"
@@ -14,5 +14,10 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

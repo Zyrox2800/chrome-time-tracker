@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Time Tracker Pro",
-  "version": "2.0",
+  "version": "2.0.0",
   "description": "Advanced time tracking with productivity analytics, goals, and gamification",
   "permissions": [
     "tabs",
     "storage",
-    "activeTab"
+    "alarms"
   ],
   "background": {
     "service_worker": "background.js",
@@ -14,6 +14,7 @@
   },
   "action": {
     "default_popup": "popup.html",
+    "default_title": "Time Tracker Pro",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -27,5 +28,9 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  },
+  "web_accessible_resources": [{
+    "resources": ["icons/*"],
+    "matches": ["<all_urls>"]
+  }]
 }

@@ -17,16 +17,19 @@
                 </div>
                 <div class="header-content">
                     <h1 class="app-title">Time Tracker Pro</h1>
-                    <p class="app-subtitle">Productivity Analytics Dashboard</p>
+                    <p class="app-subtitle">Boost Your Productivity</p>
                 </div>
             </div>
             <div class="header-right">
-                <div class="user-profile">
-                    <div class="user-avatar">U</div>
-                    <span class="user-name">User</span>
+                <div class="user-profile" id="userProfile">
+                    <div class="user-avatar">G</div>
+                    <span class="user-name" id="userStatus">Guest</span>
                 </div>
                 <button class="icon-btn" id="themeToggle" title="Toggle theme">
                     <i class="fas fa-moon"></i>
+                </button>
+                <button class="icon-btn" id="loginBtn" title="Login">
+                    <i class="fas fa-sign-in-alt"></i>
                 </button>
             </div>
         </header>
@@ -45,38 +48,48 @@
                     <i class="fas fa-clock"></i> Today
                 </div>
                 <div class="stat-value" id="todayTime">0:00</div>
-                <div class="stat-detail">Hours</div>
+                <div class="stat-detail">Active</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">
-                    <i class="fas fa-bolt"></i> Focus
+                    <i class="fas fa-bolt"></i> Score
                 </div>
                 <div class="stat-value" id="focusScore">0%</div>
-                <div class="stat-detail">Score</div>
+                <div class="stat-detail">Productivity</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">
-                    <i class="fas fa-fire"></i> Streak
+                    <i class="fas fa-trophy"></i> Points
                 </div>
-                <div class="streak-badge" id="streakBadge">0</div>
-                <div class="stat-detail">Days</div>
+                <div class="stat-value" id="totalPoints">0</div>
+                <div class="stat-detail">Earned</div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="dashboard">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </button>
-            <button class="nav-tab" data-tab="sites">
-                <i class="fas fa-globe"></i> Sites
-            </button>
-            <button class="nav-tab" data-tab="goals">
-                <i class="fas fa-bullseye"></i> Goals
-            </button>
-            <button class="nav-tab" data-tab="achievements">
-                <i class="fas fa-trophy"></i> Achievements
-            </button>
+        <!-- Navigation -->
+        <nav class="nav-container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-tab" data-tab="sites">
+                    <i class="fas fa-globe"></i>
+                    <span>Sites</span>
+                </button>
+                <button class="nav-tab" data-tab="goals">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Goals</span>
+                </button>
+                <button class="nav-tab" data-tab="achievements">
+                    <i class="fas fa-trophy"></i>
+                    <span>Achievements</span>
+                </button>
+                <button class="nav-tab" data-tab="insights">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Insights</span>
+                </button>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -90,6 +103,11 @@
                             <h3 class="card-title">
                                 <i class="fas fa-brain"></i> Productivity Score
                             </h3>
+                            <div class="card-actions">
+                                <button class="icon-btn small" title="Learn more">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="score-circle">
                             <svg viewBox="0 0 120 120">
@@ -98,46 +116,58 @@
                             </svg>
                             <div class="score-text">0%</div>
                         </div>
-                        <p class="score-label">Your efficiency rating</p>
+                        <div class="score-details">
+                            <div class="score-detail">
+                                <span class="label">Today</span>
+                                <span class="value" id="todayScore">0%</span>
+                            </div>
+                            <div class="score-detail">
+                                <span class="label">Best</span>
+                                <span class="value" id="bestScore">0%</span>
+                            </div>
+                            <div class="score-detail">
+                                <span class="label">Trend</span>
+                                <span class="value positive">↑ 5%</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Today's Stats -->
-                    <div class="card">
+                    <!-- Time Distribution -->
+                    <div class="card time-distribution">
                         <div class="card-header">
                             <h3 class="card-title">
-                                <i class="fas fa-calendar-day"></i> Today's Activity
+                                <i class="fas fa-chart-pie"></i> Time Distribution
                             </h3>
                         </div>
-                        <div class="quick-stats">
-                            <div class="quick-stat">
-                                <div class="stat-icon-container productive">
-                                    <i class="fas fa-check-circle stat-icon productive"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <h4>Productive</h4>
-                                    <p>Learning & Work</p>
-                                </div>
-                                <div class="stat-time" id="productiveTime">0:00</div>
+                        <div class="distribution-chart">
+                            <div class="distribution-segment productive">
+                                <div class="segment-label">Productive</div>
+                                <div class="segment-value" id="productivePercent">0%</div>
                             </div>
-                            <div class="quick-stat">
-                                <div class="stat-icon-container neutral">
-                                    <i class="fas fa-pause-circle stat-icon neutral"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <h4>Neutral</h4>
-                                    <p>Research & Reading</p>
-                                </div>
-                                <div class="stat-time" id="neutralTime">0:00</div>
+                            <div class="distribution-segment neutral">
+                                <div class="segment-label">Neutral</div>
+                                <div class="segment-value" id="neutralPercent">0%</div>
                             </div>
-                            <div class="quick-stat">
-                                <div class="stat-icon-container distracting">
-                                    <i class="fas fa-times-circle stat-icon distracting"></i>
-                                </div>
-                                <div class="stat-content">
-                                    <h4>Distracting</h4>
-                                    <p>Entertainment</p>
-                                </div>
-                                <div class="stat-time" id="distractingTime">0:00</div>
+                            <div class="distribution-segment distracting">
+                                <div class="segment-label">Distracting</div>
+                                <div class="segment-value" id="distractingPercent">0%</div>
+                            </div>
+                        </div>
+                        <div class="distribution-legend">
+                            <div class="legend-item">
+                                <span class="legend-color productive"></span>
+                                <span class="legend-label">Productive</span>
+                                <span class="legend-time" id="productiveTime">0m</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color neutral"></span>
+                                <span class="legend-label">Neutral</span>
+                                <span class="legend-time" id="neutralTime">0m</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color distracting"></span>
+                                <span class="legend-label">Distracting</span>
+                                <span class="legend-time" id="distractingTime">0m</span>
                             </div>
                         </div>
                     </div>
@@ -148,6 +178,11 @@
                             <h3 class="card-title">
                                 <i class="fas fa-hourglass-half"></i> Focus Timer
                             </h3>
+                            <div class="timer-presets">
+                                <button class="preset-btn" data-time="1500">25m</button>
+                                <button class="preset-btn" data-time="3000">50m</button>
+                                <button class="preset-btn" data-time="4500">75m</button>
+                            </div>
                         </div>
                         <div class="timer-display" id="focusTimer">25:00</div>
                         <div class="timer-controls">
@@ -161,40 +196,52 @@
                                 <i class="fas fa-redo"></i> Reset
                             </button>
                         </div>
-                        <div class="focus-stats">
-                            <div class="focus-stat">
-                                <div class="value" id="sessionsToday">0</div>
-                                <div class="label">Sessions</div>
+                        <div class="timer-stats">
+                            <div class="timer-stat">
+                                <div class="value" id="completedSessions">0</div>
+                                <div class="label">Completed</div>
                             </div>
-                            <div class="focus-stat">
-                                <div class="value" id="totalFocus">0</div>
+                            <div class="timer-stat">
+                                <div class="value" id="totalFocusTime">0h</div>
                                 <div class="label">Total Focus</div>
                             </div>
-                            <div class="focus-stat">
-                                <div class="value" id="bestSession">0</div>
-                                <div class="label">Best</div>
+                            <div class="timer-stat">
+                                <div class="value" id="longestSession">0m</div>
+                                <div class="label">Longest</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="card">
+                    <!-- Quick Insights -->
+                    <div class="card quick-insights">
                         <div class="card-header">
                             <h3 class="card-title">
-                                <i class="fas fa-bolt"></i> Quick Actions
+                                <i class="fas fa-lightbulb"></i> Quick Insights
                             </h3>
                         </div>
-                        <div class="quick-actions">
-                            <button class="action-btn" id="exportData">
-                                <i class="fas fa-file-export"></i> Export Data
-                            </button>
-                            <button class="action-btn" id="setDailyGoal">
-                                <i class="fas fa-bullseye"></i> Set Daily Goal
-                            </button>
-                            <button class="action-btn danger" id="resetData">
-                                <i class="fas fa-trash"></i> Reset All Data
-                            </button>
+                        <div class="insights-list">
+                            <div class="insight-item positive">
+                                <i class="fas fa-check-circle"></i>
+                                <div class="insight-text">
+                                    <strong>Great start!</strong> You've tracked your first website.
+                                </div>
+                            </div>
+                            <div class="insight-item suggestion">
+                                <i class="fas fa-bullseye"></i>
+                                <div class="insight-text">
+                                    <strong>Set a goal</strong> to improve productivity by 20%.
+                                </div>
+                            </div>
+                            <div class="insight-item warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div class="insight-text">
+                                    <strong>Take breaks</strong> every 25 minutes for better focus.
+                                </div>
+                            </div>
                         </div>
+                        <button class="action-btn full-width" id="viewMoreInsights">
+                            <i class="fas fa-chart-line"></i> View Detailed Analytics
+                        </button>
                     </div>
                 </div>
             </div>
@@ -202,15 +249,58 @@
             <!-- Sites Tab -->
             <div class="tab-pane" id="sites">
                 <div class="sites-header">
-                    <h3><i class="fas fa-globe"></i> Tracked Websites</h3>
+                    <div class="section-title">
+                        <h2><i class="fas fa-globe"></i> Tracked Websites</h2>
+                        <p class="section-subtitle">Manage and analyze your browsing activity</p>
+                    </div>
                     <div class="sites-controls">
-                        <input type="text" class="search-input" id="siteSearch" placeholder="Search sites...">
-                        <select class="filter-select" id="siteFilter">
-                            <option value="all">All Sites</option>
-                            <option value="productive">Productive</option>
-                            <option value="distracting">Distracting</option>
-                            <option value="neutral">Neutral</option>
-                        </select>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="search-input" id="siteSearch" placeholder="Search sites...">
+                        </div>
+                        <div class="filter-group">
+                            <select class="filter-select" id="siteFilter">
+                                <option value="all">All Sites</option>
+                                <option value="productive">Productive</option>
+                                <option value="neutral">Neutral</option>
+                                <option value="distracting">Distracting</option>
+                            </select>
+                            <select class="filter-select" id="timeFilter">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="all">All Time</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="sites-stats">
+                    <div class="stat-card">
+                        <div class="stat-card-icon productive">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="value" id="productiveSites">0</div>
+                            <div class="label">Productive Sites</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon neutral">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="value" id="neutralSites">0</div>
+                            <div class="label">Neutral Sites</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon distracting">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="value" id="distractingSites">0</div>
+                            <div class="label">Distracting Sites</div>
+                        </div>
                     </div>
                 </div>
                 <div class="sites-container" id="sitesList">
@@ -221,23 +311,55 @@
             <!-- Goals Tab -->
             <div class="tab-pane" id="goals">
                 <div class="goals-header">
-                    <h3><i class="fas fa-bullseye"></i> Productivity Goals</h3>
-                    <button class="btn-primary" id="addGoal">
-                        <i class="fas fa-plus"></i> New Goal
-                    </button>
+                    <div class="section-title">
+                        <h2><i class="fas fa-bullseye"></i> Productivity Goals</h2>
+                        <p class="section-subtitle">Set and track your productivity targets</p>
+                    </div>
+                    <div class="goals-actions">
+                        <button class="btn-primary" id="addGoal">
+                            <i class="fas fa-plus"></i> New Goal
+                        </button>
+                        <button class="action-btn" id="importGoals">
+                            <i class="fas fa-file-import"></i> Import
+                        </button>
+                    </div>
                 </div>
                 <div class="goal-form" id="goalForm" style="display: none;">
-                    <div class="form-row">
-                        <input type="text" class="form-input" id="goalTitle" placeholder="Goal title">
-                        <select class="form-input" id="goalType">
-                            <option value="time">Time Based</option>
-                            <option value="limit">Limit Based</option>
-                        </select>
-                        <input type="number" class="form-input" id="goalTarget" placeholder="Target">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="goalTitle"><i class="fas fa-heading"></i> Goal Title</label>
+                            <input type="text" class="form-input" id="goalTitle" placeholder="What do you want to achieve?">
+                        </div>
+                        <div class="form-group">
+                            <label for="goalType"><i class="fas fa-tasks"></i> Goal Type</label>
+                            <select class="form-input" id="goalType">
+                                <option value="time">Time Based</option>
+                                <option value="limit">Limit Based</option>
+                                <option value="habit">Habit Building</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="goalCategory"><i class="fas fa-tag"></i> Category</label>
+                            <select class="form-input" id="goalCategory">
+                                <option value="productivity">Productivity</option>
+                                <option value="learning">Learning</option>
+                                <option value="health">Health</option>
+                                <option value="social">Social</option>
+                                <option value="entertainment">Entertainment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="goalTarget"><i class="fas fa-bullseye"></i> Target</label>
+                            <input type="number" class="form-input" id="goalTarget" placeholder="e.g., 4 hours or 10 visits">
+                        </div>
+                        <div class="form-group">
+                            <label for="goalDueDate"><i class="fas fa-calendar"></i> Due Date</label>
+                            <input type="date" class="form-input" id="goalDueDate">
+                        </div>
                     </div>
                     <div class="form-actions">
-                        <button class="action-btn small" id="cancelGoal">Cancel</button>
-                        <button class="action-btn small primary" id="saveGoal">Save Goal</button>
+                        <button class="action-btn" id="cancelGoal">Cancel</button>
+                        <button class="action-btn primary" id="saveGoal">Save Goal</button>
                     </div>
                 </div>
                 <div class="goals-container" id="goalsList">
@@ -248,15 +370,87 @@
             <!-- Achievements Tab -->
             <div class="tab-pane" id="achievements">
                 <div class="achievements-header">
-                    <h3><i class="fas fa-trophy"></i> Achievements</h3>
-                    <div class="achievement-stats">
-                        <span class="achievement-count" id="unlockedCount">0</span>
-                        <span>/</span>
-                        <span class="achievement-count" id="totalAchievements">12</span>
+                    <div class="section-title">
+                        <h2><i class="fas fa-trophy"></i> Achievements</h2>
+                        <p class="section-subtitle">Unlock achievements and earn rewards</p>
+                    </div>
+                    <div class="achievements-stats">
+                        <div class="achievement-stat">
+                            <div class="value" id="unlockedCount">0</div>
+                            <div class="label">Unlocked</div>
+                        </div>
+                        <div class="achievement-stat">
+                            <div class="value" id="totalAchievements">12</div>
+                            <div class="label">Total</div>
+                        </div>
+                        <div class="achievement-stat">
+                            <div class="value" id="totalPoints">0</div>
+                            <div class="label">Points</div>
+                        </div>
+                        <div class="achievement-stat">
+                            <div class="value" id="completionRate">0%</div>
+                            <div class="label">Completion</div>
+                        </div>
                     </div>
                 </div>
                 <div class="achievements-container" id="achievementsList">
                     <!-- Achievements will be populated here -->
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div class="tab-pane" id="insights">
+                <div class="insights-header">
+                    <div class="section-title">
+                        <h2><i class="fas fa-chart-pie"></i> Detailed Insights</h2>
+                        <p class="section-subtitle">Deep dive into your productivity patterns</p>
+                    </div>
+                    <div class="insights-controls">
+                        <button class="action-btn" id="exportReport">
+                            <i class="fas fa-file-pdf"></i> Export Report
+                        </button>
+                        <button class="action-btn" id="shareInsights">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    </div>
+                </div>
+                <div class="insights-grid">
+                    <div class="card insights-card">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i> Weekly Trends
+                        </h3>
+                        <div class="insights-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>Weekly activity chart will appear here</p>
+                        </div>
+                    </div>
+                    <div class="card insights-card">
+                        <h3 class="card-title">
+                            <i class="fas fa-calendar-alt"></i> Daily Patterns
+                        </h3>
+                        <div class="insights-placeholder">
+                            <i class="fas fa-chart-area"></i>
+                            <p>Daily pattern analysis will appear here</p>
+                        </div>
+                    </div>
+                    <div class="card insights-card">
+                        <h3 class="card-title">
+                            <i class="fas fa-hourglass-end"></i> Focus Sessions
+                        </h3>
+                        <div class="insights-placeholder">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>Focus session statistics will appear here</p>
+                        </div>
+                    </div>
+                    <div class="card insights-card">
+                        <h3 class="card-title">
+                            <i class="fas fa-lightbulb"></i> Recommendations
+                        </h3>
+                        <div class="insights-placeholder">
+                            <i class="fas fa-robot"></i>
+                            <p>Personalized recommendations will appear here</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -266,8 +460,14 @@
             <button class="action-btn" id="pauseTracking">
                 <i class="fas fa-pause"></i> Pause Tracking
             </button>
+            <button class="action-btn" id="exportData" disabled>
+                <i class="fas fa-download"></i> Export Data
+            </button>
             <button class="action-btn" id="refreshData">
                 <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="action-btn danger" id="resetData">
+                <i class="fas fa-trash"></i> Reset
             </button>
         </div>
     </div>
@@ -280,12 +480,114 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to reset all tracking data? This action cannot be undone.</p>
-                <p>All your time tracking history will be permanently deleted.</p>
+                <div class="warning-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h4>Are you sure you want to reset all data?</h4>
+                <p>This will permanently delete all your tracking data, goals, and achievements. This action cannot be undone.</p>
+                <ul class="warning-list">
+                    <li><i class="fas fa-times"></i> All time tracking history</li>
+                    <li><i class="fas fa-times"></i> Your goals and progress</li>
+                    <li><i class="fas fa-times"></i> Unlocked achievements</li>
+                    <li><i class="fas fa-times"></i> Focus session records</li>
+                </ul>
             </div>
             <div class="modal-footer">
                 <button class="action-btn" id="cancelReset">Cancel</button>
-                <button class="action-btn danger" id="confirmReset">Reset All Data</button>
+                <button class="action-btn danger" id="confirmReset">Reset Everything</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sign-in-alt"></i> Sign In</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="login-options">
+                    <div class="login-option google">
+                        <i class="fab fa-google"></i>
+                        <span>Continue with Google</span>
+                    </div>
+                    <div class="login-option github">
+                        <i class="fab fa-github"></i>
+                        <span>Continue with GitHub</span>
+                    </div>
+                    <div class="login-option email">
+                        <i class="fas fa-envelope"></i>
+                        <span>Continue with Email</span>
+                    </div>
+                </div>
+                <div class="login-divider">
+                    <span>or</span>
+                </div>
+                <div class="guest-option">
+                    <i class="fas fa-user-clock"></i>
+                    <div>
+                        <h4>Continue as Guest</h4>
+                        <p>Track time locally without signing in. Data won't be synced.</p>
+                    </div>
+                    <button class="action-btn" id="continueGuest">Continue</button>
+                </div>
+                <div class="login-benefits">
+                    <h4><i class="fas fa-check-circle"></i> Benefits of signing in:</h4>
+                    <ul>
+                        <li><i class="fas fa-sync"></i> Sync data across devices</li>
+                        <li><i class="fas fa-cloud"></i> Backup your data</li>
+                        <li><i class="fas fa-share-alt"></i> Share insights</li>
+                        <li><i class="fas fa-trophy"></i> Compete on leaderboards</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-download"></i> Export Data</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-option">
+                        <i class="fas fa-file-json"></i>
+                        <h4>JSON Format</h4>
+                        <p>Full data export for backup or analysis</p>
+                        <button class="action-btn" id="exportJSON">Export JSON</button>
+                    </div>
+                    <div class="export-option">
+                        <i class="fas fa-file-csv"></i>
+                        <h4>CSV Format</h4>
+                        <p>Spreadsheet-friendly format for time data</p>
+                        <button class="action-btn" id="exportCSV">Export CSV</button>
+                    </div>
+                    <div class="export-option">
+                        <i class="fas fa-file-pdf"></i>
+                        <h4>PDF Report</h4>
+                        <p>Beautiful report with charts and insights</p>
+                        <button class="action-btn" id="exportPDF">Export PDF</button>
+                    </div>
+                </div>
+                <div class="export-settings">
+                    <h4><i class="fas fa-cog"></i> Export Settings</h4>
+                    <div class="settings-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Include time tracking data
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Include goals and progress
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Include achievements
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Include focus session data
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
